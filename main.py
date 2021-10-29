@@ -1,20 +1,17 @@
 from math import pi
 
-from field import Field
+from fielder import Fielder
+from simulator import Simulator
 from vector import Vector
 
+sim = Simulator()
+sim.addFielder(Fielder(Vector(50, 50*pi/180, polar=True)))
+sim.addFielder(Fielder(Vector(30, 70*pi/180, polar=True)))
+sim.addFielder(Fielder(Vector(10, 90*pi/180, polar=True)))
+sim.addFielder(Fielder(Vector(60, 130*pi/180, polar=True)))
+sim.addFielder(Fielder(Vector(70, 160*pi/180, polar=True)))
+sim.addFielder(Fielder(Vector(36, 200*pi/180, polar=True)))
+sim.addFielder(Fielder(Vector(71, 240*pi/180, polar=True)))
+sim.addFielder(Fielder(Vector(38, 300*pi/180, polar=True)))
 
-boundaryLine = Field((Vector(70, 0 * pi / 180, polar=True),
-                      Vector(80, 30 * pi / 180, polar=True),
-                      Vector(81, 60 * pi / 180, polar=True),
-                      Vector(82, 90 * pi / 180, polar=True),
-                      Vector(72, 120 * pi / 180, polar=True),
-                      Vector(70, 150 * pi / 180, polar=True),
-                      Vector(80, 180 * pi / 180, polar=True),
-                      Vector(82, 210 * pi / 180, polar=True),
-                      Vector(83, 240 * pi / 180, polar=True),
-                      Vector(76, 270 * pi / 180, polar=True),
-                      Vector(80, 300 * pi / 180, polar=True),
-                      Vector(80, 330 * pi / 180, polar=True)))
-
-boundaryLine.plot()
+sim.predictRuns(Vector(10, 110*pi/180, polar=True))
