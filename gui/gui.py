@@ -27,8 +27,8 @@ class Gui(tk.Tk):
         self.update_idletasks()
 
     def _gui_skeleton(self):
-        self.field = Field(self)
-        self.field_menu = FieldMenu(self, bg='green')
+        self.field = Field(self, bg='gray')
+        self.field_menu = FieldMenu(self)
         self.menu = Menu(self, bg='blue')
 
         self.field.grid(row=0, column=0, sticky='news')
@@ -62,6 +62,7 @@ class PopGui:
 
             gen_ran_bound_but.config(command=lambda: (parent.draw_boundary(
                 perlin.Perlin1D().noise(numpy.arange(360))[0]), ok_but.config(state='normal')))
+            chs_fil_bound_but.config(command=lambda: parent.file_to_boundary(askopenfilename()))
 
             gen_ran_bound_but.pack(expand=1, fill='both')
             chs_fil_bound_but.pack(expand=1, fill='both')
@@ -76,7 +77,10 @@ class PopGui:
 
 
 class Field(tk.Frame):
-    def __init__(self, parent, **kwargs):
+    FIELDER_SIZE = 2
+    FIELDER_MAX = 11
+
+    def __init__(self, parent: Gui, **kwargs):
         super(Field, self).__init__(parent, **kwargs)
         self.canvas = tk.Canvas(self, **kwargs)
         self.canvas.pack(expand=True, fill='both')
@@ -84,6 +88,8 @@ class Field(tk.Frame):
         self.pack_propagate(0)
 
         self._boundary_selected = False
+        self.parent = parent
+        self.fielder_seek = 0
 
     def build(self):
         boundary_select_but = tk.Button(self, text="Set Boundary", bg="#AAA")
@@ -101,7 +107,7 @@ class Field(tk.Frame):
         popup.run()
         popup.grab_release()
         if not self._boundary_selected: boundary_select_but["state"] = "normal"
-        else: boundary_select_but.destroy(); self._boundary_selected = False
+        else: boundary_select_but.destroy(); self._boundary_selected = False; self.add_fielders_setup()
 
     def boundary_selected(self):
         self._boundary_selected = True
@@ -111,21 +117,70 @@ class Field(tk.Frame):
         boundary = [(int(math.cos(math.radians(angle)) * self.winfo_width() / 2 * length + self.winfo_width() / 2),
                      int(math.sin(math.radians(angle)) * self.winfo_height() / 2 * length + self.winfo_height() / 2))
                     for angle, length in enumerate(boundary)]
-        self.canvas.create_polygon(boundary, fill='light green', outline='#777', width=3.5, tags="field")
         self.canvas.create_polygon(boundary, fill='light green', outline='#000', width=1.5, tags="field")
 
+    def file_to_boundary(self, file):
+        pass
 
+    def add_fielders_setup(self):
+        self.parent.field_menu.show_add_fielder_button()
+
+    def bind_add_fielder(self):
+        self.canvas.tag_bind('field', "<Button-1>", lambda event: self.add_fielder(event.x, event.y))
+        self.canvas.tag_bind('field', "<Enter>", lambda event: self.canvas.config(cursor="dotbox"))
+        self.canvas.tag_bind('field', "<Leave>", lambda event: self.canvas.config(cursor=""))
+
+    def unbind_add_fielder(self):
+        self.canvas.tag_bind('field', "<Button-1>", lambda event: None)
+        self.canvas.tag_bind('field', "<Enter>", lambda event: self.canvas.config(cursor=""))
+        self.canvas.tag_bind('field', "<Leave>", lambda event: self.canvas.config(cursor=""))
+        self.canvas.config(cursor="")
+
+    def add_fielder(self, x, y):
+        self.unbind_add_fielder()
+        self.fielder_seek += 1
+        tag = f'f{self.fielder_seek}'
+        self.canvas.create_rectangle([x - self.FIELDER_SIZE, y - self.FIELDER_SIZE,
+                                      x + self.FIELDER_SIZE, y + self.FIELDER_SIZE],
+                                     tags=tag, fill='blue', outline='blue')
+        self.parent.field_menu.add_fielder_menu(tag)
+
+
+# future: merge with field class
 class FieldMenu(tk.Frame):
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent: Gui, **kwargs):
         super(FieldMenu, self).__init__(parent, **kwargs)
+
+        self.pack_propagate(0)
+
+        self.parent = parent
 
     def build(self):
         pass
 
+    def show_add_fielder_button(self):
+        add_fielder_but = tk.Button(self, text="Add Fielder",
+                                    command=lambda: (self.parent.field.bind_add_fielder(),
+                                                     self.move_mouse_to_canvas()))
+        add_fielder_but.pack(pady=10)
+
+    def move_mouse_to_canvas(self):
+        bbox = self.parent.field.canvas.bbox('field')
+        x = numpy.random.randint(bbox[0], bbox[2])
+        y = numpy.random.randint(bbox[1], bbox[3])
+        self.parent.field.event_generate("<Motion>", x=x, y=y, warp=1)
+
+    def add_fielder_menu(self, tag):
+        but = tk.Button(self)
+        but.tag = tag
+        but.pack(fill='x', pady=5)
+
 
 class Menu(tk.Frame):
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent: Gui, **kwargs):
         super(Menu, self).__init__(parent, **kwargs)
+
+        self.parent = parent
 
     def build(self):
         pass
