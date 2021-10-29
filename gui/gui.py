@@ -8,6 +8,7 @@ class Gui(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         super(Gui, self).__init__(*args, **kwargs)
+        print(111)
         self.set_geometry()
         self.title(self.TITLE)
         self.resizable(0, 0)
