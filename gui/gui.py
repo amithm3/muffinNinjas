@@ -1,3 +1,6 @@
+import perlin
+import math
+import numpy
 import tkinter as tk
 
 
@@ -57,10 +60,13 @@ class Field(tk.Frame):
         self.pack_propagate(0)
 
     def build(self):
-        pass
+        self.draw_boundary(perlin.Perlin1D().noise(numpy.arange(360))[0])
 
     def draw_boundary(self, boundary):
-        pass
+        boundary = [(int(math.cos(math.radians(angle)) * self.winfo_width() / 2 * length + self.winfo_width() / 2),
+                     int(math.sin(math.radians(angle)) * self.winfo_height() / 2 * length + self.winfo_height() / 2))
+                    for angle, length in enumerate(boundary)]
+        self.canvas.create_polygon(boundary, fill='', outline='black')
 
 
 class FieldMenu(tk.Frame):
