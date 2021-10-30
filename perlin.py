@@ -13,7 +13,7 @@ class Perlin1D:
         else:
             self.seed = seed
         np.random.seed(self.seed)
-        self.fabric = np.random.uniform(0.7, 0.9, self.frequency).astype(np.float32)
+        self.fabric = np.random.uniform(0.89, 0.99, self.frequency).astype(np.float32)
         self.fabric[-1] = self.fabric[0]
 
         self.appender = [[[0]], [[1]]]
