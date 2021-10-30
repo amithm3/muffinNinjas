@@ -66,16 +66,19 @@ class PopGui:
                     ent = tk.Entry(self, textvariable=sv)
                     ent.insert('end', f"{val}")
                     ent.grid(row=i, column=1)
-            ok_but = tk.Button(self, text="OK", command=lambda: (self.destroy(),))
-            ok_but.grid()
+            row = self.grid_size()[1]
+            ok_but = tk.Button(self, text="OK",
+                               command=lambda: (self.destroy(), parent.parent.field.unFlash_fielder(but.tag)))
+            ok_but.grid(row=row, column=0)
+            change_pos_but = tk.Button(self, text="Change Position",
+                                       command=lambda: (parent.parent.field.bind_add_fielder(but), self.destroy()))
+            change_pos_but.grid(row=row, column=1)
 
             self.sync_windows()
 
         @staticmethod
         def ent_to_but(but, key, sv):
-            print(key)
             but.stat[key] = sv.get()
-            print(but.stat)
 
         def run(self):
             loop_active = True
@@ -127,8 +130,11 @@ class PopGui:
 
 
 class Field(tk.Frame):
-    FIELDER_SIZE = 2
+    FIELDER_SIZE = 3
+    FIELDER_FLASH_SIZE_UP = 1
     FIELDER_MAX = 11
+    FIELDER_COLOR = 'red'
+    FIELDER_FLASH_COLOR = 'blue'
 
     def __init__(self, parent: Gui, **kwargs):
         super(Field, self).__init__(parent, **kwargs)
@@ -169,6 +175,7 @@ class Field(tk.Frame):
                      int(math.sin(math.radians(angle)) * self.winfo_height() / 2 * length + self.winfo_height() / 2))
                     for angle, length in enumerate(boundary)]
         self.canvas.create_polygon(boundary, fill='light green', outline='#000', width=1.5, tags="field")
+        print(boundary)
 
     def file_to_boundary(self, file):
         pass
@@ -176,8 +183,10 @@ class Field(tk.Frame):
     def add_fielders_setup(self):
         self.parent.field_menu.show_add_fielder_button()
 
-    def bind_add_fielder(self):
-        self.canvas.tag_bind('field', "<Button-1>", lambda event: self.add_fielder(event.x, event.y))
+    def bind_add_fielder(self, but=False):
+        self.canvas.tag_bind('field', "<Button-1>",
+                             lambda event: self.add_fielder(event.x, event.y) if not but
+                             else self.change_fielder_pos(but, event.x, event.y))
         self.canvas.tag_bind('field', "<Enter>", lambda event: self.canvas.config(cursor="dotbox"))
         self.canvas.tag_bind('field', "<Leave>", lambda event: self.canvas.config(cursor=""))
 
@@ -193,8 +202,29 @@ class Field(tk.Frame):
         tag = f'f{self.fielder_seek}'
         self.canvas.create_rectangle([x - self.FIELDER_SIZE, y - self.FIELDER_SIZE,
                                       x + self.FIELDER_SIZE, y + self.FIELDER_SIZE],
-                                     tags=tag, fill='blue', outline='blue')
+                                     tags=tag, fill=self.FIELDER_COLOR, outline=self.FIELDER_COLOR)
         self.parent.field_menu.add_fielder_menu(tag)
+
+    def change_fielder_pos(self, but, x, y):
+        self.unbind_add_fielder()
+        self.canvas.coords(but.tag, [x - self.FIELDER_SIZE - self.FIELDER_FLASH_SIZE_UP,
+                                     y - self.FIELDER_SIZE - self.FIELDER_FLASH_SIZE_UP,
+                                     x + self.FIELDER_SIZE + self.FIELDER_FLASH_SIZE_UP,
+                                     y + self.FIELDER_SIZE + self.FIELDER_FLASH_SIZE_UP])
+        self.unFlash_fielder(but.tag)
+        but.update_pos()
+
+    def flash_fielder(self, tag):
+        self.canvas.itemconfig(tag, fill=self.FIELDER_FLASH_COLOR, outline=self.FIELDER_FLASH_COLOR)
+        coords = self.canvas.coords(tag)
+        self.canvas.coords(tag, [coords[0] - self.FIELDER_FLASH_SIZE_UP, coords[1] - self.FIELDER_FLASH_SIZE_UP,
+                                 coords[2] + self.FIELDER_FLASH_SIZE_UP, coords[3] + self.FIELDER_FLASH_SIZE_UP])
+
+    def unFlash_fielder(self, tag):
+        self.canvas.itemconfig(tag, fill=self.FIELDER_COLOR, outline=self.FIELDER_COLOR)
+        coords = self.canvas.coords(tag)
+        self.canvas.coords(tag, [coords[0] + self.FIELDER_FLASH_SIZE_UP, coords[1] + self.FIELDER_FLASH_SIZE_UP,
+                                 coords[2] - self.FIELDER_FLASH_SIZE_UP, coords[3] - self.FIELDER_FLASH_SIZE_UP])
 
 
 # future: merge with field class
@@ -212,8 +242,13 @@ class FieldMenu(tk.Frame):
     def show_add_fielder_button(self):
         add_fielder_but = tk.Button(self, text="Add Fielder",
                                     command=lambda: (self.parent.field.bind_add_fielder(),
-                                                     self.move_mouse_to_canvas()))
+                                                     self.move_mouse_to_canvas(),
+                                                     self.check_max_fielder(add_fielder_but)))
         add_fielder_but.pack(pady=10)
+
+    def check_max_fielder(self, but):
+        if self.parent.field.fielder_seek >= self.parent.field.FIELDER_MAX:
+            but.config(state='disabled')
 
     def move_mouse_to_canvas(self):
         bbox = self.parent.field.canvas.bbox('field')
@@ -227,6 +262,9 @@ class FieldMenu(tk.Frame):
         but.tag = tag
         but.config(command=lambda: self.change_fielder_stat(but))
         but.stat = {'pos': self.get_pos_by_tag(but.tag), 'v_max': 8, 'v_throw': 25}
+        but.update_pos = lambda but=but: but.stat.update([['pos', self.get_pos_by_tag(but.tag)]])
+        but.bind("<Enter>", lambda event, tag=but.tag: self.parent.field.flash_fielder(tag))
+        but.bind("<Leave>", lambda event, tag=but.tag: self.parent.field.unFlash_fielder(tag))
         but.pack(fill='x', pady=5)
 
     def get_pos_by_tag(self, tag):
@@ -237,10 +275,12 @@ class FieldMenu(tk.Frame):
     def change_fielder_stat(self, but):
         popup = PopGui.FielderStat(self, but)
         self.parent.bind("<Configure>", lambda event: popup.sync_windows(event))
+        but.bind("<Leave>", lambda event, tag=but.tag: None)
         popup.grab_set()
         popup.run()
         popup.grab_release()
         self.parent.bind("<Configure>", lambda event: None)
+        but.bind("<Leave>", lambda event, tag=but.tag: self.parent.field.unFlash_fielder(tag))
 
 
 class Menu(tk.Frame):
