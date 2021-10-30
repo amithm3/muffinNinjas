@@ -32,7 +32,7 @@ class Field:
         self.t_run = 3
 
         # minimum velocity for ball to reach the ropes
-        self.v_min = 30
+        self.v_min = 15
 
     # <<<CODE FOR PLOTTING CUSTOM BOUNDARY>>>
     # def plotBoundary(self):

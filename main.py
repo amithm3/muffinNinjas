@@ -14,4 +14,4 @@ sim.addFielder(Fielder(Vector(36, 200*pi/180, polar=True)))
 sim.addFielder(Fielder(Vector(71, 240*pi/180, polar=True)))
 sim.addFielder(Fielder(Vector(38, 300*pi/180, polar=True)))
 
-sim.predictRuns(Vector(10, 110*pi/180, polar=True))
+print(sim.predictRuns(Vector(20, 110*pi/180, polar=True)))

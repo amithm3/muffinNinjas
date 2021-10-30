@@ -1,4 +1,4 @@
-from math import pi, sin, sqrt, cos, ceil, floor
+from math import pi, sin, sqrt, cos
 
 from scipy.optimize import minimize_scalar
 
@@ -20,50 +20,69 @@ class Simulator:
 
     def predictRuns(self, v: Vector):
         validFielders = []
-        effective_run_list = []
-        t_field_list = []
 
         for fielder in self.fielders:
+            # the relative angle between the ball's velocity and fielder position
             angle = v.theta - fielder.position.theta
+
+            # this is the component of fielder velocity that is constant
             v_perp = abs(v * sin(angle))
 
+            # check if the fielder can ever catch up with the ball without covering too much angular distance
             if v_perp <= fielder.v_max and abs(angle) < pi / 2:
-                v_parallel_max = sqrt(fielder.v_max**2 - v_perp**2)
+                # this constraint is obtained using maximum fielder velocity
+                v_parallel_max = sqrt(fielder.v_max ** 2 - v_perp ** 2)
 
+                # this constraint is obtained using the boundary distance
                 v_parallel_min = max(0, (v.r * fielder.position.r / self.field.radius) - v.r * cos(angle))
 
+                # check if contraints are not contradictory
                 if v_parallel_min < v_parallel_max:
                     # time needed for fielder to get to ball
-                    t_field = lambda _v: fielder.position.r / (v.r * cos(angle) + _v)
-
-                    # inverse of above function
-                    t_field_inv = lambda _t: (fielder.position.r / _t) - v.r * cos(angle)
+                    def t(_v):
+                        return fielder.position.r / (v.r * cos(angle) + _v)
 
                     # position of fielder when he gets to ball
-                    r_field = lambda _v: v * t_field(_v)
+                    def r(_v):
+                        return v * t(_v)
 
                     # total time required to throw back the ball
-                    t_total = lambda _v: t_field(_v) + min(r_field(_v).r, (r_field(_v) - self.field.nonStrikerEnd).r) / fielder.v_throw
+                    def t_total(_v):
+                        return t(_v) + min(r(_v).r, (r(_v) - self.field.nonStrikerEnd).r) / fielder.v_throw
 
-                    # the runs that can be taken as a decimal value, we will eventually use the floor
-                    runs = lambda _v: t_field(_v) / self.field.t_run
+                    # the runs that can be taken as a decimal value
+                    def runs(_v):
+                        return t_total(_v) / self.field.t_run
 
-                    runs_min = runs(v_parallel_max)
-                    runs_max = runs(v_parallel_min)
+                    # probability of missfield, it is just a composition of missField function of fielder
+                    def miss_field(_v):
+                        return fielder.missField(sqrt(v_perp ** 2 + _v ** 2))
 
-                    # probability of missfield
-                    miss_field = lambda _v: fielder.missField(sqrt(v_perp ** 2 + _v ** 2))
-                    effective_runs = lambda _v: self.simulateNoFielders(_v) * miss_field(_v) + runs(_v) * (1 - miss_field(_v))
+                    # the runs scored taking into account missfield
+                    def runs_effective(_v):
+                        return self.simulateNoFielders(_v) * miss_field(_v) + runs(_v) * (1 - miss_field(_v))
 
-                    solution = minimize_scalar(effective_runs, bounds=(v_parallel_min, v_parallel_max), method="bounded")
-                    v_parallel = solution.x
+                    # HERE WE DEFINE SOME CONSTANTS ASSOCIATED WITH THE FIELDER AND BIND TO THE OBJECT
+                    # minimize effective runs and find corresponding values of the functions defined above
+                    v_parallel = minimize_scalar(runs_effective, bounds=(v_parallel_min, v_parallel_max),
+                                                 method="bounded").x
+                    fielder.v = sqrt(v_perp ** 2 + v_parallel ** 2)
+                    fielder.t = t(v_parallel)
+                    fielder.runs = runs(v_parallel)
 
                     validFielders.append(fielder)
 
-                    print(runs_min, runs_max, runs(v_parallel))
+        # sort the fielders in order of who gets to ball first
+        validFielders.sort(key=lambda _f: _f.t)
 
-        if len(validFielders) == 0:
-            return self.simulateNoFielders(v.r)
+        def effRunsRecursion(i):
+            if i == len(validFielders):
+                return self.simulateNoFielders(v.r)
+            else:
+                _f = validFielders[i]
+                return _f.runs * (1 - _f.missField(_f.v)) + _f.missField(_f.v) * effRunsRecursion(i + 1)
+
+        return effRunsRecursion(0)
 
     def simulateNoFielders(self, v):
         if v > self.field.v_min:
