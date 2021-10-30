@@ -50,14 +50,21 @@ class Gui(tk.Tk):
 
 class PopGui:
     class FielderStat(tk.Toplevel):
-        def __init__(self, parent: "FieldMenu", **kwargs):
+        def __init__(self, parent: "FieldMenu", stat: dict, **kwargs):
             super().__init__(parent, **kwargs)
             self.focus_force()
             self.overrideredirect(1)
             self.config(takefocus=1)
 
+            for key, val, i in zip(stat.keys(), stat.values(), range(len(stat))):
+                if key == 'pos': tk.Label(self, text=f"{key}: {val}").grid(row=0, column=0, columnspan=2)
+                else:
+                    tk.Label(self, text=f"{key}").grid(row=i, column=0)
+                    ent = tk.Entry(self)
+                    ent.insert('end', f"{val}")
+                    ent.grid(row=i, column=1)
             ok_but = tk.Button(self, text="OK", command=lambda: (self.destroy(),))
-            ok_but.pack()
+            ok_but.grid()
 
             self.sync_windows()
 
@@ -205,14 +212,21 @@ class FieldMenu(tk.Frame):
         y = numpy.random.randint(bbox[1], bbox[3])
         self.parent.field.event_generate("<Motion>", x=x, y=y, warp=1)
 
+    # noinspection PyTypeChecker
     def add_fielder_menu(self, tag):
-        but = tk.Button(self, command=lambda: self.change_fielder_stat(but))
+        but = tk.Button(self)
         but.tag = tag
-        but.stat = []
+        but.config(command=lambda: self.change_fielder_stat(but))
+        but.stat = {'pos': self.get_pos_by_tag(but.tag), 'v_max': 8, 'v_throw': 25}
         but.pack(fill='x', pady=5)
 
+    def get_pos_by_tag(self, tag):
+        cord = self.parent.field.canvas.coords(tag)
+
+        return (cord[0] + cord[2]) / 2, (cord[1] + cord[3]) / 2
+
     def change_fielder_stat(self, but):
-        popup = PopGui.FielderStat(self)
+        popup = PopGui.FielderStat(self, but.stat)
         self.parent.bind("<Configure>", lambda event: popup.sync_windows(event))
         popup.grab_set()
         popup.run()
