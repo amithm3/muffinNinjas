@@ -1,3 +1,5 @@
+import numpy as np
+
 import perlin
 import math
 import numpy
@@ -71,7 +73,8 @@ class PopGui:
                                command=lambda: (self.destroy(), parent.parent.field.unFlash_fielder(but.tag)))
             ok_but.grid(row=row, column=0)
             change_pos_but = tk.Button(self, text="Change Position",
-                                       command=lambda: (parent.parent.field.bind_add_fielder(but), self.destroy()))
+                                       command=lambda: (parent.parent.field.bind_add_fielder(but), self.destroy(),
+                                                        parent.disable()))
             change_pos_but.grid(row=row, column=1)
 
             self.sync_windows()
@@ -133,8 +136,9 @@ class Field(tk.Frame):
     FIELDER_SIZE = 3
     FIELDER_FLASH_SIZE_UP = 1
     FIELDER_MAX = 11
-    FIELDER_COLOR = 'red'
-    FIELDER_FLASH_COLOR = 'blue'
+    FIELDER_COLOR = 'blue'
+    FIELDER_FLASH_COLOR = 'purple'
+    PITCH_SIZE = (20, 5)
 
     def __init__(self, parent: Gui, **kwargs):
         super(Field, self).__init__(parent, **kwargs)
@@ -175,7 +179,11 @@ class Field(tk.Frame):
                      int(math.sin(math.radians(angle)) * self.winfo_height() / 2 * length + self.winfo_height() / 2))
                     for angle, length in enumerate(boundary)]
         self.canvas.create_polygon(boundary, fill='light green', outline='#000', width=1.5, tags="field")
-        print(boundary)
+        boundary = np.array(boundary)
+        middle = boundary.mean(axis=0)
+        self.canvas.create_rectangle([middle[0] - self.PITCH_SIZE[0], middle[1] - self.PITCH_SIZE[1],
+                                      middle[0] + self.PITCH_SIZE[0], middle[1] + self.PITCH_SIZE[1]], tags="pitch",
+                                     fill='sienna2', outline='sienna3')
 
     def file_to_boundary(self, file):
         pass
@@ -183,6 +191,7 @@ class Field(tk.Frame):
     def add_fielders_setup(self):
         self.parent.field_menu.show_add_fielder_button()
 
+    # noinspection PyTypeChecker
     def bind_add_fielder(self, but=False):
         self.canvas.tag_bind('field', "<Button-1>",
                              lambda event: self.add_fielder(event.x, event.y) if not but
@@ -213,6 +222,7 @@ class Field(tk.Frame):
                                      y + self.FIELDER_SIZE + self.FIELDER_FLASH_SIZE_UP])
         self.unFlash_fielder(but.tag)
         but.update_pos()
+        self.parent.field_menu.enable()
 
     def flash_fielder(self, tag):
         self.canvas.itemconfig(tag, fill=self.FIELDER_FLASH_COLOR, outline=self.FIELDER_FLASH_COLOR)
@@ -281,6 +291,12 @@ class FieldMenu(tk.Frame):
         popup.grab_release()
         self.parent.bind("<Configure>", lambda event: None)
         but.bind("<Leave>", lambda event, tag=but.tag: self.parent.field.unFlash_fielder(tag))
+
+    def disable(self):
+        self.grid_forget()
+
+    def enable(self):
+        self.grid(row=0, column=1, sticky='news')
 
 
 class Menu(tk.Frame):
