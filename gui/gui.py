@@ -137,7 +137,7 @@ class Field(tk.Frame):
     FIELDER_FLASH_SIZE_UP = 1
     FIELDER_MAX = 11
     FIELDER_COLOR = 'blue'
-    FIELDER_FLASH_COLOR = 'purple'
+    FIELDER_FLASH_COLOR = 'maroon'
     PITCH_SIZE = (20, 5)
 
     def __init__(self, parent: Gui, **kwargs):
