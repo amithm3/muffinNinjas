@@ -1,6 +1,9 @@
 from math import pi, sin, sqrt, cos
 
 from scipy.optimize import minimize_scalar
+import numpy as np
+from sklearn.neighbors import KernelDensity
+from matplotlib import pyplot as plt
 
 from field import Field
 from fielder import Fielder
@@ -12,11 +15,60 @@ class Simulator:
         self.field = Field(80)
         self.fielders = []
 
+        # all speed values must lie in this range, if they lie beyond these, they will be cutback to the limits
+        self.min_speed = 8
+        self.max_speed = 40
+
     def addFielder(self, fielder: Fielder):
         self.fielders.append(fielder)
 
     def fieldersInsideBoundary(self):
         return all([fielder.position.r <= self.field for fielder in self.fielders])
+
+    def inputData(self, speed, angle):
+        self.speed = np.vectorize(lambda x: max(min(self.max_speed, x), self.min_speed))(speed).reshape((len(speed), 1))
+        self.angle = np.vectorize(lambda x: x % (2 * pi))(angle).reshape((len(angle), 1))
+
+        self.speed_model = KernelDensity(bandwidth=1, kernel='gaussian')
+        self.angle_model = KernelDensity(bandwidth=.2, kernel='gaussian')
+
+        self.speed_model.fit(self.speed)
+        self.angle_model.fit(self.angle)
+
+    def evaluateSpeedPDF(self, x):
+        return np.exp(self.speed_model.score_samples(np.array([x]).reshape((1, 1))))[0]
+
+    def evaluateAnglePDF(self, x):
+        return np.exp(self.angle_model.score_samples(np.array([x]).reshape((1, 1))))[0]
+
+    def plotAnglePDF(self):
+        values = np.linspace(0, 2 * pi, 100).reshape((100, 1))
+        probabilities = np.exp(self.angle_model.score_samples(values))
+
+        plt.hist(self.angle, bins=50, density=True)
+        plt.plot(values, probabilities)
+        plt.show()
+
+    def plotSpeedPDF(self):
+        values = np.linspace(self.min_speed, self.max_speed, 100).reshape((100, 1))
+        probabilities = np.exp(self.speed_model.score_samples(values))
+
+        plt.hist(self.speed, bins=50, density=True)
+        plt.plot(values, probabilities)
+        plt.show()
+
+    def rate(self):
+        integral = 0
+
+        dtheta = 2 * pi / 100
+        dv = (self.max_speed - self.min_speed) / 100
+
+        for theta in np.arange(0, 2 * pi, dtheta):
+            for v in np.arange(self.min_speed, self.max_speed, dv):
+                integral += self.predictRuns(Vector(v, theta, polar=True)) * \
+                            self.evaluateSpeedPDF(v) * self.evaluateAnglePDF(theta) * dv * dtheta
+
+        return integral
 
     def predictRuns(self, v: Vector):
         validFielders = []
