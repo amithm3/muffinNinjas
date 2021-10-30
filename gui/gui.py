@@ -54,7 +54,7 @@ class Gui(tk.Tk):
 
 class PopGui:
     class FielderStat(tk.Toplevel):
-        def __init__(self, parent: "FieldMenu", but, **kwargs):
+        def __init__(self, parent: "FieldMenu", but: "FielderButton", **kwargs):
             super().__init__(parent, **kwargs)
             self.focus_force()
             self.overrideredirect(1)
@@ -66,7 +66,7 @@ class PopGui:
                 else:
                     tk.Label(self, text=f"{key}").grid(row=i, column=0)
                     sv = tk.StringVar(self)
-                    sv.trace("w", lambda *_, sv=sv, key=key, but=but: self.ent_to_but(but, key, sv))
+                    sv.trace("w", lambda *_, svv=sv, keyy=key, bot=but: self.ent_to_but(bot, keyy, svv))
                     ent = tk.Entry(self, textvariable=sv)
                     ent.insert('end', f"{val}")
                     ent.grid(row=i, column=1)
@@ -82,8 +82,9 @@ class PopGui:
             self.sync_windows()
 
         @staticmethod
-        def ent_to_but(but, key, sv):
+        def ent_to_but(but: "FielderButton", key, sv):
             but.stat[key] = sv.get()
+            but.update_fielder()
 
         def run(self):
             loop_active = True
@@ -208,6 +209,7 @@ class Field(tk.Frame):
                                      y + self.FIELDER_SIZE + self.FIELDER_FLASH_SIZE_UP])
         self.unFlash_fielder(but.tag)
         but.update_pos()
+        but.update_fielder()
         self.parent.field_menu.enable()
 
     def flash_fielder(self, tag):
@@ -286,6 +288,7 @@ class FielderButton(tk.Button):
         self.tag = tag
         self.parent = parent
         self.stat = {'pos': self.parent.get_pos_by_tag(self.tag), 'v_max': 8, 'v_throw': 25}
+        self.fielder = Fielder(**self.stat)
 
         self.bind("<Enter>", lambda event, tags=self.tag: self.parent.parent.field.flash_fielder(tags))
         self.bind("<Leave>", lambda event, tags=self.tag: self.parent.parent.field.unFlash_fielder(tags))
@@ -294,6 +297,9 @@ class FielderButton(tk.Button):
 
     def update_pos(self):
         self.stat.update([('pos', self.parent.get_pos_by_tag(self.tag))])
+
+    def update_fielder(self):
+        self.fielder.update_stat(**self.stat)
 
 
 if __name__ == '__main__':
