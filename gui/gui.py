@@ -50,23 +50,32 @@ class Gui(tk.Tk):
 
 class PopGui:
     class FielderStat(tk.Toplevel):
-        def __init__(self, parent: "FieldMenu", stat: dict, **kwargs):
+        def __init__(self, parent: "FieldMenu", but, **kwargs):
             super().__init__(parent, **kwargs)
             self.focus_force()
             self.overrideredirect(1)
             self.config(takefocus=1)
 
+            stat = but.stat
             for key, val, i in zip(stat.keys(), stat.values(), range(len(stat))):
                 if key == 'pos': tk.Label(self, text=f"{key}: {val}").grid(row=0, column=0, columnspan=2)
                 else:
                     tk.Label(self, text=f"{key}").grid(row=i, column=0)
-                    ent = tk.Entry(self)
+                    sv = tk.StringVar(self)
+                    sv.trace("w", lambda *_, sv=sv, key=key, but=but: self.ent_to_but(but, key, sv))
+                    ent = tk.Entry(self, textvariable=sv)
                     ent.insert('end', f"{val}")
                     ent.grid(row=i, column=1)
             ok_but = tk.Button(self, text="OK", command=lambda: (self.destroy(),))
             ok_but.grid()
 
             self.sync_windows()
+
+        @staticmethod
+        def ent_to_but(but, key, sv):
+            print(key)
+            but.stat[key] = sv.get()
+            print(but.stat)
 
         def run(self):
             loop_active = True
@@ -226,7 +235,7 @@ class FieldMenu(tk.Frame):
         return (cord[0] + cord[2]) / 2, (cord[1] + cord[3]) / 2
 
     def change_fielder_stat(self, but):
-        popup = PopGui.FielderStat(self, but.stat)
+        popup = PopGui.FielderStat(self, but)
         self.parent.bind("<Configure>", lambda event: popup.sync_windows(event))
         popup.grab_set()
         popup.run()
