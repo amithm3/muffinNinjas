@@ -49,10 +49,36 @@ class Gui(tk.Tk):
 
 
 class PopGui:
+    class FielderStat(tk.Toplevel):
+        def __init__(self, parent: "FieldMenu", **kwargs):
+            super().__init__(parent, **kwargs)
+            self.focus_force()
+            self.overrideredirect(1)
+            self.config(takefocus=1)
+
+            ok_but = tk.Button(self, text="OK", command=lambda: (self.destroy(),))
+            ok_but.pack()
+
+            self.sync_windows()
+
+        def run(self):
+            loop_active = True
+            while loop_active:
+                if self.winfo_exists(): self.after(0, self.update())
+                else: break
+
+        def sync_windows(self, event=None):
+            if self.winfo_exists():
+                x = self.master.master.winfo_x() + 30
+                y = self.master.master.winfo_y() + 50
+                self.geometry("+%d+%d" % (x, y))
+
     class BoundarySelect(tk.Toplevel):
         def __init__(self, parent: "Field", **kwargs):
             super().__init__(parent, **kwargs)
             self.focus_force()
+            self.overrideredirect(1)
+            self.config(takefocus=1)
 
             gen_ran_bound_but = tk.Button(self, text="Generate Random Boundary")
             chs_fil_bound_but = tk.Button(self, text="Choose Boundary info File")
@@ -69,11 +95,19 @@ class PopGui:
             ok_but.pack(side='left')
             cl_but.pack(side='right')
 
+            self.sync_windows()
+
         def run(self):
             loop_active = True
             while loop_active:
                 if self.winfo_exists(): self.after(0, self.update())
                 else: break
+
+        def sync_windows(self, event=None):
+            if self.winfo_exists():
+                x = self.master.master.winfo_x() + 30
+                y = self.master.master.winfo_y() + 50
+                self.geometry("+%d+%d" % (x, y))
 
 
 class Field(tk.Frame):
@@ -102,10 +136,11 @@ class Field(tk.Frame):
     def _on_boundary_select(self, boundary_select_but: tk.Button):
         boundary_select_but["state"] = "disabled"
         popup = PopGui.BoundarySelect(self)
-        popup.geometry(f"+{self.winfo_rootx()}+{self.winfo_rooty()}")
+        self.parent.bind("<Configure>", lambda event: popup.sync_windows(event))
         popup.grab_set()
         popup.run()
         popup.grab_release()
+        self.parent.bind("<Configure>", lambda event: None)
         if not self._boundary_selected: boundary_select_but["state"] = "normal"
         else: boundary_select_but.destroy(); self._boundary_selected = False; self.add_fielders_setup()
 
@@ -171,9 +206,18 @@ class FieldMenu(tk.Frame):
         self.parent.field.event_generate("<Motion>", x=x, y=y, warp=1)
 
     def add_fielder_menu(self, tag):
-        but = tk.Button(self)
+        but = tk.Button(self, command=lambda: self.change_fielder_stat(but))
         but.tag = tag
+        but.stat = []
         but.pack(fill='x', pady=5)
+
+    def change_fielder_stat(self, but):
+        popup = PopGui.FielderStat(self)
+        self.parent.bind("<Configure>", lambda event: popup.sync_windows(event))
+        popup.grab_set()
+        popup.run()
+        popup.grab_release()
+        self.parent.bind("<Configure>", lambda event: None)
 
 
 class Menu(tk.Frame):
