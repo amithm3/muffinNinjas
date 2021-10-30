@@ -2,8 +2,8 @@ from math import pi
 from numpy.random import normal
 from numpy import hstack
 
-from fielder import Fielder
-from simulator import Simulator
+from src.fielder import Fielder
+from src.simulator import Simulator
 from vector import Vector
 
 sim = Simulator()
