@@ -18,13 +18,18 @@ class FieldMenu(tk.Frame):
         self.pack_propagate(0)
 
         self.parent = parent
+        self.but_batsman = None
+        self.rate_but = None
+        self.rate_lab = None
 
     def build(self):
-        but_batsman = tk.Button(self, text="Set Batsman \n Data", command=lambda: self.load_batsman_data())
-        but_batsman.pack(fill='x', pady=5, padx=5)
+        self.but_batsman = tk.Button(self, text="Set Batsman \n Data", command=lambda: self.load_batsman_data())
+        self.but_batsman.pack(fill='x', pady=5, padx=5)
 
-        rate_but = tk.Button(self, text='rate', command=lambda: self.rate())
-        rate_but.pack(side='bottom')
+        self.rate_but = tk.Button(self, text='rate', command=lambda: self.rate(), state='disabled')
+        self.rate_but.pack(side='bottom')
+        self.rate_lab = tk.Label(self, text='Average Runs: \n0')
+        self.rate_lab.pack(side='bottom')
 
     def add_fielders(self, positions):
         for i, pos in zip(range(self.parent.field.FIELDER_MAX), positions):
@@ -73,9 +78,10 @@ class FieldMenu(tk.Frame):
 
         folder_path = askdirectory(initialdir=init_path)
         self.parent.sim.inputBatsManData(folder_path)
+        self.rate_but.config(state='active')
 
     def rate(self):
-        thread = td.Thread(target=lambda: print(self.parent.sim.rate()))
+        thread = td.Thread(target=lambda: self.rate_lab.config(text=f"Average Runs: \n{self.parent.sim.rate()}"))
         thread.daemon = True
         thread.start()
 

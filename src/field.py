@@ -96,6 +96,7 @@ class Field(tk.Frame):
         return True
 
     def draw_boundary(self, boundary):
+        self.parent.field_menu.but_batsman.config(state='active')
         boundary = np.array(boundary)
         self.canvas.delete("field")
         zoom = min(self.winfo_width() / 2, self.winfo_height() / 2)
