@@ -41,8 +41,9 @@ class FieldMenu(tk.Frame):
 
     def get_pos_by_tag(self, tag):
         cord = self.parent.field.canvas.coords(tag)
-        return self.parent.field.tkinterCoordToBoundary((cord[0] + cord[2]) / 2 / self.parent.field.scale,
-                                                        (cord[1] + cord[3]) / 2 / self.parent.field.scale)
+        cord = self.parent.field.tkinterCoordToBoundary((cord[0] + cord[2]) / 2, (cord[1] + cord[3]) / 2)
+        cord = cord[0] / self.parent.field.scale, cord[1] / self.parent.field.scale
+        return cord
 
     def change_fielder_stat(self, but):
         popup = FielderStat(self, but)
@@ -59,6 +60,7 @@ class FieldMenu(tk.Frame):
 
     def enable(self):
         self.grid(row=0, column=1, sticky='news')
+        self.update()
 
     def load_batsman_data(self):
         if os.path.basename(path := os.path.dirname(os.getcwd())) == "muffinNinjas":
