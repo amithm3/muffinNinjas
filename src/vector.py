@@ -1,5 +1,5 @@
 from __future__ import annotations
-from math import cos, sin, sqrt, atan2
+from math import cos, sin, sqrt, atan2, pi
 import copy
 
 
@@ -19,7 +19,10 @@ class Vector:
 
     @property
     def theta(self) -> float:
-        return atan2(self.x, self.y)
+        if self.x >= 0:
+            return atan2(self.x, self.y)
+        else:
+            return 2 * pi + atan2(self.x, self.y)
 
     def __abs__(self) -> float:
         return self.r
