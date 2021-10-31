@@ -119,6 +119,7 @@ class Field(tk.Frame):
         self.pack_propagate(0)
 
         self.parent = parent
+        self.scale = 1
 
     def build(self):
         boundary_select_but = tk.Button(self, text="Set Boundary", bg="#AAA")
@@ -175,15 +176,17 @@ class Field(tk.Frame):
             return False
 
         boundary = [self.parent.sim.field.boundaryLength(angle) for angle in range(360)]
-        self.draw_boundary(np.array(boundary) / max(boundary))
+        self.draw_boundary(np.array(boundary))
 
         return True
 
     def draw_boundary(self, boundary):
         self.canvas.delete("field")
-        boundary = [(int(math.cos(math.radians(angle)) * self.winfo_width() / 2 * length + self.winfo_width() / 2),
-                     int(math.sin(math.radians(angle)) * self.winfo_height() / 2 * length + self.winfo_height() / 2))
-                    for angle, length in enumerate(boundary)]
+        zoom = min(self.winfo_width() / 2, self.winfo_height() / 2)
+        self.scale = zoom / max(boundary)
+        boundary = [(int(math.sin(math.radians(angle)) * length + self.winfo_width() / 2),
+                     int(-math.cos(math.radians(angle)) * length + self.winfo_height() / 2))
+                    for angle, length in enumerate(np.array(boundary) * self.scale)]
         self.canvas.create_polygon(boundary, fill='light green', outline='#000', width=1.5, tags="field")
         boundary = np.array(boundary)
         middle = boundary.mean(axis=0)
@@ -260,7 +263,8 @@ class FieldMenu(tk.Frame):
 
     def get_pos_by_tag(self, tag):
         cord = self.parent.field.canvas.coords(tag)
-        return (cord[0] + cord[2]) / 2, (cord[1] + cord[3]) / 2
+        return (cord[0] + cord[2] - self.parent.field.canvas.winfo_width()) / 2 / self.parent.field.scale,\
+               (cord[1] + cord[3] - self.parent.field.canvas.winfo_width()) / 2 / self.parent.field.scale
 
     def change_fielder_stat(self, but):
         popup = PopGui.FielderStat(self, but)
