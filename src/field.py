@@ -5,7 +5,7 @@ import numpy as np
 from scipy import interpolate, optimize
 from matplotlib import pyplot as plt
 
-from vector import Vector
+from .vector import Vector
 
 
 class Field:

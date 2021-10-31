@@ -6,9 +6,9 @@ import numpy as np
 from sklearn.neighbors import KernelDensity
 from matplotlib import pyplot as plt
 
-from field import Field
-from fielder import Fielder
-from vector import Vector
+from .field import Field
+from .fielder import Fielder
+from .vector import Vector
 
 
 def CSVtolst(path):

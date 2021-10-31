@@ -2,6 +2,7 @@ import numpy as np
 
 from src import perlin
 import os
+from src.simulator import Simulator
 
 import math
 import numpy
@@ -24,6 +25,8 @@ class Gui(tk.Tk):
 
         self._gui_skeleton()
         self._build()
+
+        self.sim = Simulator()
 
     def set_geometry(self):
         x, y = (self.winfo_screenwidth() - self.SIZE[0]) // 2, (self.winfo_screenheight() - self.SIZE[1]) // 4
@@ -115,7 +118,6 @@ class Field(tk.Frame):
 
         self.pack_propagate(0)
 
-        self._boundary_selected = False
         self.parent = parent
 
     def build(self):
@@ -134,18 +136,14 @@ class Field(tk.Frame):
         else: init_path = ""
 
         file = askopenfilename(initialdir=init_path)
-        if os.path.basename(file) == "random.csv":
-            self.draw_boundary(perlin.Perlin1D().noise(np.arange(360))[0])
-            self._boundary_selected = True
-        elif file == "": pass
+        boundary_select_but["state"] = "normal"
+        if os.path.basename(file) == "random.csv": self.draw_boundary(perlin.Perlin1D().noise(np.arange(360))[0])
+        elif file == "": return
         else:
-            if self.file_to_boundary(file): self._boundary_selected = True
+            if not self.file_to_boundary(file): return
 
-        if not self._boundary_selected: boundary_select_but["state"] = "normal"
-        else:
-            boundary_select_but.destroy()
-            self._boundary_selected = False
-            self.parent.field_menu.add_fielders(self.get_random_pos_within_boundary(11))
+        boundary_select_but.destroy()
+        self.parent.field_menu.add_fielders(self.get_random_pos_within_boundary(11))
 
     def get_random_pos_within_boundary(self, num):
         positions = []
@@ -169,8 +167,17 @@ class Field(tk.Frame):
         pos_len = x**2 + y**2
         return bound_len > pos_len and not np.isclose(bound_len, pos_len, rtol=0.09)
 
-    def file_to_boundary(self, file):
-        return False
+    def file_to_boundary(self, path):
+        # noinspection PyBroadException
+        try:
+            self.parent.sim.field.load(path)
+        except:
+            return False
+
+        boundary = [self.parent.sim.field.boundaryLength(angle) for angle in range(360)]
+        self.draw_boundary(np.array(boundary) / max(boundary))
+
+        return True
 
     def draw_boundary(self, boundary):
         self.canvas.delete("field")
