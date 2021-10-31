@@ -61,6 +61,7 @@ class FieldMenu(tk.Frame):
 
     def enable(self):
         self.grid()
+        self.parent.geometry(f'+{self.parent.winfo_x()}+{self.parent.winfo_y()}')
 
     def load_batsman_data(self):
         if os.path.basename(path := os.path.dirname(os.getcwd())) == "muffinNinjas":

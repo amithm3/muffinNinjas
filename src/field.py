@@ -131,6 +131,7 @@ class Field(tk.Frame):
 
     def change_fielder_pos(self, but: "FielderButton", x, y):
         self.unbind_change_fielder()
+        self.parent.field_menu.enable()
         self.canvas.coords(but.tag, [x - self.FIELDER_SIZE - self.FIELDER_FLASH_SIZE_UP,
                                      y - self.FIELDER_SIZE - self.FIELDER_FLASH_SIZE_UP,
                                      x + self.FIELDER_SIZE + self.FIELDER_FLASH_SIZE_UP,
@@ -138,7 +139,6 @@ class Field(tk.Frame):
         self.unFlash_fielder(but.tag)
         but.update_pos()
         but.update_fielder()
-        self.parent.field_menu.enable()
 
     def flash_fielder(self, tag):
         self.canvas.itemconfig(tag, fill=self.FIELDER_FLASH_COLOR, outline=self.FIELDER_FLASH_COLOR)
