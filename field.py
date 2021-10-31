@@ -1,43 +1,69 @@
+import csv
+from math import radians
+
+import numpy as np
+from scipy import interpolate, optimize
+from matplotlib import pyplot as plt
+
 from vector import Vector
 
 
 class Field:
-    def __init__(self, radius: float):
-        # <<<CODE FOR CUSTOM BOUNDARY>>>
-        # """
-        # boundary is an array of Vectors representing the boundary of the field
-        # the exact boundary is found via interpolation
-        # """
-        # # the following code works by magic
-        # self.x = []
-        # self.y = []
-        #
-        # for vec in boundary:
-        #     self.x.append(vec.x)
-        #     self.y.append(vec.y)
-        #
-        # self.x.append(self.x[0])
-        # self.y.append(self.y[0])
-        #
-        # self.tck, u = interpolate.splprep([self.x, self.y], s=0, per=True)
-        #
-        # self.boundary = interpolate.splev(np.linspace(0, 1, res), self.tck)
+    def __init__(self, path=None):
+        # the file contains data in degrees format
+        if path:
+            self.load(path)
 
-        self.radius = radius
+    def load(self, path):
+        """
+        load csv file contains data with degree format
+        """
+        self.boundaryVectors = []
 
-        # position of non striker end
-        self.nonStrikerEnd = Vector(0, -20)
+        self.x = []
+        self.y = []
 
-        # time required to take a run
-        self.t_run = 3
+        with open(path, 'r', newline='') as f:
+            for row in csv.reader(f):
+                v = Vector(float(row[0]), radians(float(row[1])), polar=True)
+                self.boundaryVectors.append(v)
+                self.x.append(v.x)
+                self.y.append(v.y)
 
-        # minimum velocity for ball to reach the ropes
-        self.v_min = 15
+        x = self.x + [self.x[0]]
+        y = self.y + [self.y[0]]
 
-    # <<<CODE FOR PLOTTING CUSTOM BOUNDARY>>>
-    # def plotBoundary(self):
-    #     fig, ax = plt.subplots(1, 1)
-    #     ax.plot(self.x, self.y, 'or')
-    #     ax.plot(*self.boundary, '-b')
-    #
-    #     plt.show()
+        self.tck, self.u = interpolate.splprep([x, y], s=0, per=True)
+
+    def evaluate(self, t) -> Vector:
+        """
+        evaluates the boundary at given parameter
+        """
+        x, y = interpolate.splev([t], self.tck)
+        return Vector(x[0], y[0])
+
+    def boundaryLength(self, theta, degrees=True):
+        """
+        returns length of boundary at given angle
+        """
+        def f(t):
+            v = self.evaluate(t)
+            if degrees:
+                return radians(theta) - v.theta
+            else:
+                return theta - v.theta
+
+        sol = optimize.root_scalar(f, x0=0.5, x1=0.3)
+
+        return self.evaluate(sol.root).r
+
+    def plot(self):
+        """
+        use matplotlib to plot boundary approximation
+        """
+        fig, ax = plt.subplots(1, 1)
+        ax.plot(self.x, self.y, 'or')
+        print(interpolate.splev([0.5], self.tck))
+        ax.plot(*interpolate.splev(np.linspace(0, 1, 1000), self.tck), '-b')
+
+        plt.show()
