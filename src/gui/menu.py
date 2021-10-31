@@ -56,10 +56,10 @@ class FieldMenu(tk.Frame):
         but.bind("<Leave>", lambda event, tag=but.tag: self.parent.field.unFlash_fielder(tag))
 
     def disable(self):
-        self.grid_forget()
+        self.grid_remove()
 
     def enable(self):
-        self.grid(row=0, column=1, sticky='news')
+        self.grid()
 
     def load_batsman_data(self):
         if os.path.basename(path := os.path.dirname(os.getcwd())) == "muffinNinjas":
