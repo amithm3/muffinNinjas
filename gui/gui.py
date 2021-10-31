@@ -1,14 +1,14 @@
 from src.simulator import Simulator
 from field import Field
-from menu import FieldMenu, Menu
+from menu import FieldMenu
 
 import tkinter as tk
 
 
 class Gui(tk.Tk):
-    SIZE = (750, 600)
+    SIZE = (700, 600)
     TITLE = "TITLE"
-    class RowColumnRatio: Field = 6; Menu = 1; Up = 6; Bottom = 1
+    class ColumnRatio: Field = 6; Menu = 1
 
     def __init__(self, *args, **kwargs):
         super(Gui, self).__init__(*args, **kwargs)
@@ -31,23 +31,20 @@ class Gui(tk.Tk):
     def _gui_skeleton(self):
         self.field = Field(self, bg='gray')
         self.field_menu = FieldMenu(self)
-        self.menu = Menu(self, bg='blue')
 
         self.field.grid(row=0, column=0, sticky='news')
         self.field_menu.grid(row=0, column=1, sticky='news')
-        self.menu.grid(row=1, column=0, columnspan=2, sticky='news')
 
-        self.columnconfigure(0, weight=self.RowColumnRatio.Field)
-        self.columnconfigure(1, weight=self.RowColumnRatio.Menu)
-        self.rowconfigure(0, weight=self.RowColumnRatio.Up)
-        self.rowconfigure(1, weight=self.RowColumnRatio.Bottom)
+        self.columnconfigure(0, weight=self.ColumnRatio.Field)
+        self.columnconfigure(1, weight=self.ColumnRatio.Menu)
+        self.rowconfigure(0, weight=1)
 
         self.update_idletasks()
+        self.update()
 
     def _build(self):
         self.field.build()
         self.field_menu.build()
-        self.menu.build()
 
 
 if __name__ == '__main__':

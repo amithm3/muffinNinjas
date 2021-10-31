@@ -1,6 +1,7 @@
 import tkinter as tk
 import numpy as np
 import os
+import threading as td
 from typing import *
 from pop_gui import FielderStat
 from src.fielder import Fielder
@@ -18,13 +19,17 @@ class FieldMenu(tk.Frame):
         self.parent = parent
 
     def build(self):
-        pass
+        but_batsman = tk.Button(self, text="Set Batsman \n Data", command=lambda: self.load_batsman_data())
+        but_batsman.pack(fill='x', pady=5, padx=5)
+
+        rate_but = tk.Button(self, text='rate', command=lambda: self.rate())
+        rate_but.pack(side='bottom')
 
     def add_fielders(self, positions):
         for i, pos in zip(range(self.parent.field.FIELDER_MAX), positions):
             tag = f'f{i}'
             self.parent.field.draw_fielder(pos[0], pos[1], tag)
-            FielderButton(self, tag).pack(fill='x', pady=5)
+            FielderButton(self, tag).pack(fill='x', pady=5, padx=5)
 
     def move_mouse_to_canvas(self):
         bbox = self.parent.field.canvas.bbox('field')
@@ -54,18 +59,6 @@ class FieldMenu(tk.Frame):
     def enable(self):
         self.grid(row=0, column=1, sticky='news')
 
-
-class Menu(tk.Frame):
-    def __init__(self, parent: "Gui", **kwargs):
-        super(Menu, self).__init__(parent, **kwargs)
-
-        self.parent = parent
-
-    def build(self):
-        tk.Button(self, text='rate', command=lambda: self.parent.sim.rate()).pack()
-        tk.Button(self, text="Import Batsman Data",
-                  command=lambda: self.load_batsman_data()).pack()
-
     def load_batsman_data(self):
         if os.path.basename(path := os.path.dirname(os.getcwd())) == "muffinNinjas":
             init_path = rf"{path}/assets/players"
@@ -77,10 +70,15 @@ class Menu(tk.Frame):
         folder_path = askdirectory(initialdir=init_path)
         self.parent.sim.inputBatsManData(folder_path)
 
+    def rate(self):
+        thread = td.Thread(target=lambda: print(self.parent.sim.rate()))
+        thread.daemon = True
+        thread.start()
+
 
 class FielderButton(tk.Button):
     def __init__(self, parent: "FieldMenu", tag, **kwargs):
-        super(FielderButton, self).__init__(parent, **kwargs)
+        super(FielderButton, self).__init__(parent, text=tag, **kwargs)
 
         self.tag = tag
         self.parent = parent

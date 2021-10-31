@@ -19,7 +19,8 @@ class FielderStat(tk.Toplevel):
                 tk.Label(self, text=f"{key}").grid(row=i, column=0)
                 sv = tk.StringVar(self)
                 sv.trace("w", lambda *_, svv=sv, keyy=key, bot=but: self.ent_to_but(bot, keyy, svv))
-                ent = tk.Entry(self, textvariable=sv)
+                vcmd = (self.register(self.validateIntegerEntry), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
+                ent = tk.Entry(self, textvariable=sv, validate="key", validatecommand=vcmd)
                 ent.insert('end', f"{val}")
                 ent.grid(row=i, column=1)
         row = self.grid_size()[1]
@@ -35,7 +36,8 @@ class FielderStat(tk.Toplevel):
 
     @staticmethod
     def ent_to_but(but: "FielderButton", key, sv):
-        but.stat[key] = sv.get()
+        if key == 'pos': but.stat[key] = sv.get()
+        else: but.stat[key] = int(sv.get())
         but.update_fielder()
 
     def run(self):
@@ -49,3 +51,12 @@ class FielderStat(tk.Toplevel):
             x = self.master.master.winfo_x() + 30
             y = self.master.master.winfo_y() + 50
             self.geometry("+%d+%d" % (x, y))
+
+    @staticmethod
+    def validateIntegerEntry(*args):
+        if args[4] == ' ': return False
+        try:
+            int(args[2])
+            return True
+        except ValueError:
+            return False
