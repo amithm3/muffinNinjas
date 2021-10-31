@@ -5,12 +5,39 @@ if TYPE_CHECKING:
     from .menu import FieldMenu, FielderButton
 
 
+class WaitDialog(tk.Toplevel):
+    def __init__(self, parent: "FieldMenu", title, message):
+        super(WaitDialog, self).__init__(parent)
+        self.title(title)
+        self.overrideredirect(1)
+        tk.Label(self, text=f"{message}").pack()
+        self.sync_windows()
+
+        self.parent = parent
+
+    def run(self):
+        self.parent.parent.bind("<Configure>", lambda event: self.sync_windows(event))
+        self.grab_set()
+        while True:
+            if self.winfo_exists(): self.after(0, self.update())
+            else: self.destroy(); break
+        self.grab_release()
+        self.parent.parent.bind("<Configure>", lambda event: None)
+
+    def sync_windows(self, event=None):
+        if self.winfo_exists():
+            x = self.master.master.winfo_x() + 30
+            y = self.master.master.winfo_y() + 50
+            self.geometry("+%d+%d" % (x, y))
+
+
 class FielderStat(tk.Toplevel):
     def __init__(self, parent: "FieldMenu", but: "FielderButton", **kwargs):
         super().__init__(parent, **kwargs)
         self.focus_force()
         self.overrideredirect(1)
         self.config(takefocus=1)
+        self.parent = parent
 
         stat = but.stat
         for key, val, i in zip(stat.keys(), stat.values(), range(len(stat))):
@@ -41,10 +68,15 @@ class FielderStat(tk.Toplevel):
         but.update_fielder()
 
     def run(self):
-        loop_active = True
-        while loop_active:
-            if self.winfo_exists(): self.after(0, self.update())
-            else: break
+        self.parent.parent.bind("<Configure>", lambda event: self.sync_windows(event))
+        self.grab_set()
+        while True:
+            if self.winfo_exists():
+                self.after(0, self.update())
+            else:
+                self.destroy(); break
+        self.grab_release()
+        self.parent.parent.bind("<Configure>", lambda event: None)
 
     def sync_windows(self, event=None):
         if self.winfo_exists():

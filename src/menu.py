@@ -3,9 +3,10 @@ import numpy as np
 import os
 import threading as td
 from typing import *
-from .pop_gui import FielderStat
+from .pop_gui import FielderStat, WaitDialog
 from .simulation.fielder import Fielder
 from tkinter.filedialog import askdirectory
+from tkinter.messagebox import showinfo
 
 if TYPE_CHECKING:
     from .gui import Gui
@@ -53,12 +54,8 @@ class FieldMenu(tk.Frame):
 
     def change_fielder_stat(self, but):
         popup = FielderStat(self, but)
-        self.parent.bind("<Configure>", lambda event: popup.sync_windows(event))
         but.bind("<Leave>", lambda event, tag=but.tag: None)
-        popup.grab_set()
         popup.run()
-        popup.grab_release()
-        self.parent.bind("<Configure>", lambda event: None)
         but.bind("<Leave>", lambda event, tag=but.tag: self.parent.field.unFlash_fielder(tag))
 
     def disable(self):
@@ -81,9 +78,12 @@ class FieldMenu(tk.Frame):
         self.rate_but.config(state='active')
 
     def rate(self):
-        thread = td.Thread(target=lambda: self.rate_lab.config(text=f"Average Runs: \n{self.parent.sim.rate()}"))
+        wait_dialog = WaitDialog(self, 'SIMULATING', "Wait For The Simulation \nTo Finnish")
+        thread = td.Thread(target=lambda: (showinfo("RESULT", f"Average Runs:\n{round(self.parent.sim.rate(), 2)}"),
+                                           wait_dialog.destroy()))
         thread.daemon = True
         thread.start()
+        wait_dialog.run()
 
 
 class FielderButton(tk.Button):
