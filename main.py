@@ -30,4 +30,3 @@ print(sim.predictRuns(Vector(20, radians(110), polar=True)))
 
 # get the rating of the field based on the data
 print(sim.rate())
-i
