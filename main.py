@@ -24,7 +24,7 @@ sim.addFielder(Fielder(Vector(38, radians(300), polar=True)))
 print(sim.fieldersInsideBoundary())
 
 # input some of the batsman's data
-sim.inputData("assets/players/default/speed.csv", "assets/players/default/angle.csv")
+sim.inputBatsManData("assets/players/default")
 
 # predict the runs scored for a particular shot
 print(sim.predictRuns(Vector(20, radians(110), polar=True)))

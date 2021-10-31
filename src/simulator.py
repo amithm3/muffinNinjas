@@ -44,7 +44,8 @@ class Simulator:
         return all([fielder.position.r <= self.field.boundaryLength(fielder.position.theta, degrees=False)
                     for fielder in self.fielders])
 
-    def inputData(self, speedPath, anglePath):
+    def inputBatsManData(self, folderPath):
+        speedPath, anglePath = folderPath + r'/speed.csv', folderPath + r'/angle.csv'
         speed = np.array(CSVtolst(speedPath))
         angle = np.array(CSVtolst(anglePath))
 

@@ -1,8 +1,10 @@
 import tkinter as tk
 import numpy as np
+import os
 from typing import *
 from pop_gui import FielderStat
 from src.fielder import Fielder
+from tkinter.filedialog import askdirectory
 
 if TYPE_CHECKING: from .gui import Gui
 
@@ -61,6 +63,19 @@ class Menu(tk.Frame):
 
     def build(self):
         tk.Button(self, text='rate', command=lambda: self.parent.sim.rate()).pack()
+        tk.Button(self, text="Import Batsman Data",
+                  command=lambda: self.load_batsman_data()).pack()
+
+    def load_batsman_data(self):
+        if os.path.basename(path := os.path.dirname(os.getcwd())) == "muffinNinjas":
+            init_path = rf"{path}/assets/players"
+        elif os.path.basename(path := os.getcwd()) == "muffinNinjas":
+            init_path = rf"{path}/assets/players"
+        else:
+            init_path = ""
+
+        folder_path = askdirectory(initialdir=init_path)
+        self.parent.sim.inputBatsManData(folder_path)
 
 
 class FielderButton(tk.Button):
