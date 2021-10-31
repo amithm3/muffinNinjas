@@ -4,6 +4,7 @@ from src.fielder import Fielder
 from src.simulator import Simulator
 from src.vector import Vector
 
+
 sim = Simulator()
 
 # load the field from a csv file
