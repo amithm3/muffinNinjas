@@ -28,6 +28,8 @@ class Field(tk.Frame):
         self.parent = parent
         self.scale = 1
 
+        self.flashed = False
+
     def build(self):
         boundary_select_but = tk.Button(self, text="Set Boundary", bg="#AAA")
         boundary_select_but.place(x=self.winfo_width() // 2 - boundary_select_but.winfo_reqwidth() // 2,
@@ -142,13 +144,17 @@ class Field(tk.Frame):
         but.update_fielder()
 
     def flash_fielder(self, tag):
-        self.canvas.itemconfig(tag, fill=self.FIELDER_FLASH_COLOR, outline=self.FIELDER_FLASH_COLOR)
-        coords = self.canvas.coords(tag)
-        self.canvas.coords(tag, [coords[0] - self.FIELDER_FLASH_SIZE_UP, coords[1] - self.FIELDER_FLASH_SIZE_UP,
-                                 coords[2] + self.FIELDER_FLASH_SIZE_UP, coords[3] + self.FIELDER_FLASH_SIZE_UP])
+        if not self.flashed:
+            self.canvas.itemconfig(tag, fill=self.FIELDER_FLASH_COLOR, outline=self.FIELDER_FLASH_COLOR)
+            coords = self.canvas.coords(tag)
+            self.canvas.coords(tag, [coords[0] - self.FIELDER_FLASH_SIZE_UP, coords[1] - self.FIELDER_FLASH_SIZE_UP,
+                                     coords[2] + self.FIELDER_FLASH_SIZE_UP, coords[3] + self.FIELDER_FLASH_SIZE_UP])
+            self.flashed = True
 
     def unFlash_fielder(self, tag):
-        self.canvas.itemconfig(tag, fill=self.FIELDER_COLOR, outline=self.FIELDER_COLOR)
-        coords = self.canvas.coords(tag)
-        self.canvas.coords(tag, [coords[0] + self.FIELDER_FLASH_SIZE_UP, coords[1] + self.FIELDER_FLASH_SIZE_UP,
-                                 coords[2] - self.FIELDER_FLASH_SIZE_UP, coords[3] - self.FIELDER_FLASH_SIZE_UP])
+        if self.flashed:
+            self.canvas.itemconfig(tag, fill=self.FIELDER_COLOR, outline=self.FIELDER_COLOR)
+            coords = self.canvas.coords(tag)
+            self.canvas.coords(tag, [coords[0] + self.FIELDER_FLASH_SIZE_UP, coords[1] + self.FIELDER_FLASH_SIZE_UP,
+                                     coords[2] - self.FIELDER_FLASH_SIZE_UP, coords[3] - self.FIELDER_FLASH_SIZE_UP])
+            self.flashed = False
