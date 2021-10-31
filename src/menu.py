@@ -4,10 +4,11 @@ import os
 import threading as td
 from typing import *
 from .pop_gui import FielderStat
-from ..simulation.fielder import Fielder
+from .simulation.fielder import Fielder
 from tkinter.filedialog import askdirectory
 
-if TYPE_CHECKING: from .gui import Gui
+if TYPE_CHECKING:
+    from .gui import Gui
 
 
 class FieldMenu(tk.Frame):
