@@ -7,14 +7,11 @@ from sklearn.neighbors import KernelDensity
 from matplotlib import pyplot as plt
 
 from field import Field
-from src.fielder import Fielder
+from fielder import Fielder
 from vector import Vector
 
 
 def CSVtolst(path):
-    """
-    convert csv file data to a list
-    """
     data = []
     with open(path, 'r', newline='') as f:
         for row in csv.reader(f):
