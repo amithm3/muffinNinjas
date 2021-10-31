@@ -1,4 +1,4 @@
-from ..simulation.simulator import Simulator
+from .simulation.simulator import Simulator
 from .field import Field
 from .menu import FieldMenu
 

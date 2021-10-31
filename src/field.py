@@ -1,7 +1,7 @@
 import tkinter as tk
 import os
 import numpy as np
-from ..simulation.perlin import Perlin1D
+from .simulation.perlin import Perlin1D
 from typing import *
 from tkinter.filedialog import askopenfilename
 
