@@ -24,13 +24,12 @@ class FieldMenu(tk.Frame):
         self.rate_lab = None
 
     def build(self):
-        self.but_batsman = tk.Button(self, text="Set Batsman \n Data", command=lambda: self.load_batsman_data())
+        self.but_batsman = tk.Button(self, text="Set Batsman \n Data", command=lambda: self.load_batsman_data(),
+                                     state='disabled')
         self.but_batsman.pack(fill='x', pady=5, padx=5)
 
         self.rate_but = tk.Button(self, text='rate', command=lambda: self.rate(), state='disabled')
         self.rate_but.pack(side='bottom')
-        # self.rate_lab = tk.Label(self, text='Average Runs: \n0')
-        # self.rate_lab.pack(side='bottom')
 
     def add_fielders(self, positions):
         for i, pos in zip(range(self.parent.field.FIELDER_MAX), positions):
