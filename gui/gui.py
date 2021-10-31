@@ -1,4 +1,4 @@
-import perlin
+from src import perlin
 import math
 import numpy
 import tkinter as tk
