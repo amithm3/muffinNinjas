@@ -2,12 +2,13 @@ from math import radians
 
 from src.fielder import Fielder
 from src.simulator import Simulator
-from vector import Vector
+from src.vector import Vector
+
 
 sim = Simulator()
 
 # load the field from a csv file
-sim.field.load("resources/fields/default.csv")
+sim.field.load("assets/fields/default.csv")
 
 # Add as many fielder as you wish
 sim.addFielder(Fielder(Vector(50, radians(50), polar=True)))
@@ -23,7 +24,7 @@ sim.addFielder(Fielder(Vector(38, radians(300), polar=True)))
 print(sim.fieldersInsideBoundary())
 
 # input some of the batsman's data
-sim.inputData("resources/players/default/speed.csv", "resources/players/default/angle.csv")
+sim.inputData("assets/players/default/speed.csv", "assets/players/default/angle.csv")
 
 # predict the runs scored for a particular shot
 print(sim.predictRuns(Vector(20, radians(110), polar=True)))
