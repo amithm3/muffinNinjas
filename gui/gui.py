@@ -264,7 +264,7 @@ class FieldMenu(tk.Frame):
     def get_pos_by_tag(self, tag):
         cord = self.parent.field.canvas.coords(tag)
         return (cord[0] + cord[2] - self.parent.field.canvas.winfo_width()) / 2 / self.parent.field.scale,\
-               (cord[1] + cord[3] - self.parent.field.canvas.winfo_width()) / 2 / self.parent.field.scale
+               -(cord[1] + cord[3] - self.parent.field.canvas.winfo_width()) / 2 / self.parent.field.scale
 
     def change_fielder_stat(self, but):
         popup = PopGui.FielderStat(self, but)
