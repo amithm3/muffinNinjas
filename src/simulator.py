@@ -1,4 +1,5 @@
-from math import pi, sin, sqrt, cos
+import csv
+from math import pi, sin, sqrt, cos, radians
 
 from scipy.optimize import minimize_scalar
 import numpy as np
@@ -6,16 +7,33 @@ from sklearn.neighbors import KernelDensity
 from matplotlib import pyplot as plt
 
 from field import Field
-from src.fielder import Fielder
+from fielder import Fielder
 from vector import Vector
+
+
+def CSVtolst(path):
+    data = []
+    with open(path, 'r', newline='') as f:
+        for row in csv.reader(f):
+            data.append(float(row[0]))
+    return data
 
 
 class Simulator:
     def __init__(self):
-        self.field = Field(80)
+        self.field = Field()
         self.fielders = []
 
-        # all speed values must lie in this range, if they lie beyond these, they will be cutback to the limits
+        # position of non striker end
+        self.nonStrikerEnd = Vector(0, -20)
+
+        # time required to take a run
+        self.t_run = 3
+
+        # minimum velocity for ball to reach the ropes
+        self.min_boundary_speed = 15
+
+        # all speed values must lie in this range, if they lie beyond these, they will be cropped to the limits
         self.min_speed = 8
         self.max_speed = 40
 
@@ -23,11 +41,15 @@ class Simulator:
         self.fielders.append(fielder)
 
     def fieldersInsideBoundary(self):
-        return all([fielder.position.r <= self.field for fielder in self.fielders])
+        return all([fielder.position.r <= self.field.boundaryLength(fielder.position.theta, degrees=False)
+                    for fielder in self.fielders])
 
-    def inputData(self, speed, angle):
+    def inputData(self, speedPath, anglePath):
+        speed = np.array(CSVtolst(speedPath))
+        angle = np.array(CSVtolst(anglePath))
+
         self.speed = np.vectorize(lambda x: max(min(self.max_speed, x), self.min_speed))(speed).reshape((len(speed), 1))
-        self.angle = np.vectorize(lambda x: x % (2 * pi))(angle).reshape((len(angle), 1))
+        self.angle = np.vectorize(lambda x: radians(x) % (2 * pi))(angle).reshape((len(angle), 1))
 
         self.speed_model = KernelDensity(bandwidth=1, kernel='gaussian')
         self.angle_model = KernelDensity(bandwidth=.2, kernel='gaussian')
@@ -86,7 +108,8 @@ class Simulator:
                 v_parallel_max = sqrt(fielder.v_max ** 2 - v_perp ** 2)
 
                 # this constraint is obtained using the boundary distance
-                v_parallel_min = max(0, (v.r * fielder.position.r / self.field.radius) - v.r * cos(angle))
+                v_parallel_min = max(0, (v.r * fielder.position.r / self.field.boundaryLength(v.theta, degrees=False))
+                                     - v.r * cos(angle))
 
                 # check if contraints are not contradictory
                 if v_parallel_min < v_parallel_max:
@@ -100,11 +123,11 @@ class Simulator:
 
                     # total time required to throw back the ball
                     def t_total(_v):
-                        return t(_v) + min(r(_v).r, (r(_v) - self.field.nonStrikerEnd).r) / fielder.v_throw
+                        return t(_v) + min(r(_v).r, (r(_v) - self.nonStrikerEnd).r) / fielder.v_throw
 
                     # the runs that can be taken as a decimal value
                     def runs(_v):
-                        return t_total(_v) / self.field.t_run
+                        return t_total(_v) / self.t_run
 
                     # probability of missfield, it is just a composition of missField function of fielder
                     def miss_field(_v):
@@ -137,7 +160,7 @@ class Simulator:
         return effRunsRecursion(0)
 
     def simulateNoFielders(self, v):
-        if v > self.field.v_min:
+        if v > self.min_boundary_speed:
             return 4
         else:
             return 3
