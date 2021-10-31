@@ -7,7 +7,7 @@ import tkinter as tk
 
 class Gui(tk.Tk):
     SIZE = (700, 600)
-    TITLE = "TITLE"
+    TITLE = "Muffin Ninjas"
     class ColumnRatio: Field = 6; Menu = 1
 
     def __init__(self, *args, **kwargs):

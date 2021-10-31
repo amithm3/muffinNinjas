@@ -29,8 +29,8 @@ class FieldMenu(tk.Frame):
 
         self.rate_but = tk.Button(self, text='rate', command=lambda: self.rate(), state='disabled')
         self.rate_but.pack(side='bottom')
-        self.rate_lab = tk.Label(self, text='Average Runs: \n0')
-        self.rate_lab.pack(side='bottom')
+        # self.rate_lab = tk.Label(self, text='Average Runs: \n0')
+        # self.rate_lab.pack(side='bottom')
 
     def add_fielders(self, positions):
         for i, pos in zip(range(self.parent.field.FIELDER_MAX), positions):
@@ -78,7 +78,7 @@ class FieldMenu(tk.Frame):
         self.rate_but.config(state='active')
 
     def rate(self):
-        wait_dialog = WaitDialog(self, 'SIMULATING', "Wait For The Simulation \nTo Finnish")
+        wait_dialog = WaitDialog(self, 'SIMULATING', "Wait For The Simulation \nTo Finish")
         thread = td.Thread(target=lambda: (showinfo("RESULT", f"Average Runs:\n{round(self.parent.sim.rate(), 2)}"),
                                            wait_dialog.destroy()))
         thread.daemon = True
