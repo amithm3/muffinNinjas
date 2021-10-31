@@ -41,7 +41,8 @@ class FieldMenu(tk.Frame):
 
     def get_pos_by_tag(self, tag):
         cord = self.parent.field.canvas.coords(tag)
-        return self.parent.field.tkinterCoordToBoundary((cord[0] + cord[2]) / 2, (cord[1] + cord[3]) / 2)
+        return self.parent.field.tkinterCoordToBoundary((cord[0] + cord[2]) / 2 / self.parent.field.scale,
+                                                        (cord[1] + cord[3]) / 2 / self.parent.field.scale)
 
     def change_fielder_stat(self, but):
         popup = FielderStat(self, but)
