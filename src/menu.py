@@ -81,7 +81,7 @@ class FieldMenu(tk.Frame):
         self.rate_but.config(state='active')
 
     def rate(self):
-        thread = td.Thread(target=lambda: self.rate_lab.config(text=f"Average Runs: \n{self.parent.sim.rate()}"))
+        thread = td.Thread(target=lambda: self.rate_lab.config(text=f"Average Runs: \n{round(self.parent.sim.rate(), 2)}"))
         thread.daemon = True
         thread.start()
 
