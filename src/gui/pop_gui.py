@@ -2,7 +2,7 @@ import tkinter as tk
 from typing import *
 
 if TYPE_CHECKING:
-    from menu import FieldMenu, FielderButton
+    from .menu import FieldMenu, FielderButton
 
 
 class FielderStat(tk.Toplevel):

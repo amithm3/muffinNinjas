@@ -3,8 +3,8 @@ import numpy as np
 import os
 import threading as td
 from typing import *
-from pop_gui import FielderStat
-from src.fielder import Fielder
+from .pop_gui import FielderStat
+from ..simulation.fielder import Fielder
 from tkinter.filedialog import askdirectory
 
 if TYPE_CHECKING: from .gui import Gui
@@ -60,7 +60,6 @@ class FieldMenu(tk.Frame):
 
     def enable(self):
         self.grid(row=0, column=1, sticky='news')
-        self.update()
 
     def load_batsman_data(self):
         if os.path.basename(path := os.path.dirname(os.getcwd())) == "muffinNinjas":

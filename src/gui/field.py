@@ -1,7 +1,7 @@
 import tkinter as tk
 import os
 import numpy as np
-from src import perlin
+from ..simulation.perlin import Perlin1D
 from typing import *
 from tkinter.filedialog import askopenfilename
 
@@ -54,7 +54,7 @@ class Field(tk.Frame):
         file = askopenfilename(initialdir=init_path)
         boundary_select_but["state"] = "normal"
         if os.path.basename(file) == "random.csv":
-            self.draw_boundary(perlin.Perlin1D().noise(np.arange(360))[0])
+            self.draw_boundary(Perlin1D().noise(np.arange(360))[0])
         elif file == "":
             return
         else:

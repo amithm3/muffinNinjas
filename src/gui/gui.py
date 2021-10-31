@@ -1,6 +1,6 @@
-from src.simulator import Simulator
-from field import Field
-from menu import FieldMenu
+from ..simulation.simulator import Simulator
+from .field import Field
+from .menu import FieldMenu
 
 import tkinter as tk
 
@@ -45,8 +45,3 @@ class Gui(tk.Tk):
     def _build(self):
         self.field.build()
         self.field_menu.build()
-
-
-if __name__ == '__main__':
-    gui = Gui()
-    gui.mainloop()
